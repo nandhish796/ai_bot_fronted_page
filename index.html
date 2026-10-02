@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JARVIS AI Assistant</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at center, #10243a 0%, #050b12 45%, #020408 100%);
+    color: #e8f7ff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: min(900px, 94%);
+    text-align: center;
+}
+
+.title {
+    font-size: 42px;
+    letter-spacing: 8px;
+    margin-bottom: 8px;
+    color: #9eeaff;
+    text-shadow: 0 0 25px #00bfff;
+}
+
+.status {
+    color: #8da9b8;
+    margin-bottom: 35px;
+}
+
+.mic-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+#micButton {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 2px solid #00c8ff;
+    background: radial-gradient(circle, #123b54, #06111b);
+    color: white;
+    font-size: 55px;
+    cursor: pointer;
+    box-shadow:
+        0 0 25px #008cff,
+        inset 0 0 30px #006b99;
+    transition: 0.25s;
+}
+
+#micButton:hover {
+    transform: scale(1.05);
+}
+
+#micButton.active {
+    border-color: #00ffcc;
+    box-shadow:
+        0 0 35px #00ffcc,
+        inset 0 0 35px #008f7a;
+}
+
+#micButton.stop {
+    border-color: #ff5555;
+    box-shadow:
+        0 0 35px #ff2222,
+        inset 0 0 30px #8f0000;
+}
+
+.volume-container {
+    width: min(500px, 90%);
+    height: 8px;
+    background: #15232d;
+    border-radius: 10px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+#volumeBar {
+    height: 100%;
+    width: 0%;
+    background: #00d9ff;
+    transition: width 0.08s linear;
+}
+
+#statusText {
+    font-size: 18px;
+    min-height: 28px;
+    color: #aeeaff;
+}
+
+.conversation {
+    margin-top: 30px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+    padding: 10px;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.5;
+}
+
+.user {
+    background: #102d40;
+    border-left: 3px solid #00bfff;
+}
+
+.jarvis {
+    background: #142c24;
+    border-left: 3px solid #00ffae;
+}
+
+.label {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-bottom: 4px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="title">JARVIS</div>
+
+    <div class="status">
+        Personal AI Voice Assistant
+    </div>
+
+    <div class="mic-area">
+        <button id="micButton">🎤</button>
+    </div>
+
+    <div id="statusText">
+        Click the microphone to start
+    </div>
+
+    <div class="volume-container">
+        <div id="volumeBar"></div>
+    </div>
+
+    <div id="conversation" class="conversation"></div>
+
+</div>
+
+
+<script>
+
+/* ================================
+   CONFIGURATION
+================================ */
+
+const N8N_WEBHOOK =
+    "https://nandhish.app.n8n.cloud/webhook/jarvis";
+
+const SILENCE_DURATION = 2200;
+const MIN_RECORDING_TIME = 700;
+const SILENCE_THRESHOLD = 0.025;
+const VOLUME_CHECK_INTERVAL = 80;
+
+
+/* ================================
+   VARIABLES
+================================ */
+
+let stream = null;
+let mediaRecorder = null;
+let audioContext = null;
+let analyser = null;
+let source = null;
+
+let silenceTimer = null;
+let volumeTimer = null;
+
+let recordingStartTime = 0;
+let hasSpeech = false;
+
+let isRunning = false;
+let isProcessing = false;
+
+
+/* ================================
+   ELEMENTS
+================================ */
+
+const micButton =
+    document.getElementById("micButton");
+
+const statusText =
+    document.getElementById("statusText");
+
+const volumeBar =
+    document.getElementById("volumeBar");
+
+const conversation =
+    document.getElementById("conversation");
+
+
+/* ================================
+   BUTTON
+================================ */
+
+micButton.addEventListener("click", async () => {
+
+    if (isRunning) {
+        stopEverything();
+    } else {
+        await startListening();
+    }
+
+});
+
+
+/* ================================
+   START LISTENING
+================================ */
+
+async function startListening() {
+
+    if (isProcessing) {
+        return;
+    }
+
+    try {
+
+        if (!stream) {
+
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: true
+            });
+
+            setupAudioAnalyser();
+
+        }
+
+        isRunning = true;
+        hasSpeech = false;
+
+        micButton.classList.add("active");
+        micButton.classList.remove("stop");
+
+        micButton.textContent = "🎤";
+
+        statusText.textContent =
+            "Listening...";
+
+        startRecorder();
+
+    } catch (error) {
+
+        console.error("Microphone error:", error);
+
+        statusText.textContent =
+            "Microphone error: " + error.message;
+
+        isRunning = false;
+
+    }
+
+}
+
+
+/* ================================
+   AUDIO ANALYSER
+================================ */
+
+function setupAudioAnalyser() {
+
+    audioContext =
+        new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+    analyser =
+        audioContext.createAnalyser();
+
+    analyser.fftSize = 2048;
+
+    source =
+        audioContext.createMediaStreamSource(stream);
+
+    source.connect(analyser);
+
+    monitorVolume();
+
+}
+
+
+/* ================================
+   VOLUME MONITOR
+================================ */
+
+function monitorVolume() {
+
+    const bufferLength =
+        analyser.fftSize;
+
+    const dataArray =
+        new Uint8Array(bufferLength);
+
+    function checkVolume() {
+
+        if (!isRunning) {
+            volumeBar.style.width = "0%";
+            return;
+        }
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+
+            const value =
+                (dataArray[i] - 128) / 128;
+
+            sum += value * value;
+
+        }
+
+        const rms =
+            Math.sqrt(sum / bufferLength);
+
+        const percentage =
+            Math.min(100, rms * 500);
+
+        volumeBar.style.width =
+            percentage + "%";
+
+
+        if (
+            mediaRecorder &&
+            mediaRecorder.state === "recording"
+        ) {
+
+            if (rms > SILENCE_THRESHOLD) {
+
+                hasSpeech = true;
+
+                clearTimeout(silenceTimer);
+
+                silenceTimer = null;
+
+            } else if (
+                hasSpeech &&
+                !silenceTimer &&
+                Date.now() - recordingStartTime >
+                MIN_RECORDING_TIME
+            ) {
+
+                silenceTimer = setTimeout(() => {
+
+                    if (
+                        mediaRecorder &&
+                        mediaRecorder.state === "recording"
+                    ) {
+
+                        mediaRecorder.stop();
+
+                    }
+
+                }, SILENCE_DURATION);
+
+            }
+
+        }
+
+        volumeTimer =
+            setTimeout(checkVolume, VOLUME_CHECK_INTERVAL);
+
+    }
+
+    checkVolume();
+
+}
+
+
+/* ================================
+   START RECORDER
+================================ */
+
+function startRecorder() {
+
+    if (!stream || !isRunning) {
+        return;
+    }
+
+    if (
+        mediaRecorder &&
+        mediaRecorder.state === "recording"
+    ) {
+        return;
+    }
+
+    hasSpeech = false;
+
+    const chunks = [];
+
+    try {
+
+        mediaRecorder =
+            new MediaRecorder(stream, {
+                mimeType: "audio/webm"
+            });
+
+    } catch (error) {
+
+        console.error(
+            "MediaRecorder error:",
+            error
+        );
+
+        statusText.textContent =
+            "Browser does not support audio recording.";
+
+        return;
+    }
+
+
+    mediaRecorder.ondataavailable =
+        event => {
+
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+
+        };
+
+
+    mediaRecorder.onstop =
+        async () => {
+
+            clearTimeout(silenceTimer);
+            silenceTimer = null;
+
+            if (!hasSpeech) {
+
+                if (isRunning) {
+                    startRecorder();
+                }
+
+                return;
+            }
+
+
+            const audioBlob =
+                new Blob(chunks, {
+                    type: "audio/webm"
+                });
+
+            await sendAudio(audioBlob);
+
+        };
+
+
+    recordingStartTime = Date.now();
+
+    mediaRecorder.start();
+
+}
+
+
+/* ================================
+   SEND AUDIO TO N8N
+================================ */
+
+async function sendAudio(audioBlob) {
+
+    if (!isRunning) {
+        return;
+    }
+
+    isProcessing = true;
+
+    statusText.textContent =
+        "JARVIS is thinking...";
+
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "data",
+        audioBlob,
+        "voice.webm"
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                N8N_WEBHOOK,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "n8n HTTP error: " +
+                response.status
+            );
+
+        }
+
+
+        const result =
+            await response.json();
+
+        console.log(
+            "JARVIS response:",
+            result
+        );
+
+
+        /*
+         =========================================
+         TAMIL RESPONSE
+         =========================================
+        */
+
+        if (
+            result.language === "ta-IN"
+        ) {
+
+            isProcessing = false;
+
+            speakTamil(
+                result.text
+            );
+
+            return;
+        }
+
+
+        /*
+         =========================================
+         ENGLISH RESPONSE
+         =========================================
+        */
+
+        if (
+            result.language === "en-US"
+        ) {
+
+            playEnglish(
+                result.audioBase64
+            );
+
+            return;
+        }
+
+
+        console.warn(
+            "Unknown language:",
+            result.language
+        );
+
+        isProcessing = false;
+
+        startListening();
+
+
+    } catch (error) {
+
+        console.error(
+            "Request error:",
+            error
+        );
+
+        statusText.textContent =
+            "Connection error";
+
+        isProcessing = false;
+
+        if (isRunning) {
+            startListening();
+        }
+
+    }
+
+}
+
+
+/* ================================
+   ENGLISH AUDIO
+================================ */
+
+function playEnglish(base64Audio) {
+
+    if (!base64Audio) {
+
+        console.error(
+            "No English audio received"
+        );
+
+        isProcessing = false;
+
+        startListening();
+
+        return;
+    }
+
+
+    try {
+
+        const binaryString =
+            atob(base64Audio);
+
+        const bytes =
+            new Uint8Array(
+                binaryString.length
+            );
+
+
+        for (
+            let i = 0;
+            i < binaryString.length;
+            i++
+        ) {
+
+            bytes[i] =
+                binaryString.charCodeAt(i);
+
+        }
+
+
+        const blob =
+            new Blob(
+                [bytes],
+                {
+                    type: "audio/wav"
+                }
+            );
+
+
+        const audioUrl =
+            URL.createObjectURL(blob);
+
+        const audio =
+            new Audio(audioUrl);
+
+
+        statusText.textContent =
+            "JARVIS speaking...";
+
+
+        audio.onended = () => {
+
+            URL.revokeObjectURL(audioUrl);
+
+            isProcessing = false;
+
+            if (isRunning) {
+                startListening();
+            }
+
+        };
+
+
+        audio.onerror = error => {
+
+            console.error(
+                "English audio error:",
+                error
+            );
+
+            URL.revokeObjectURL(audioUrl);
+
+            isProcessing = false;
+
+            if (isRunning) {
+                startListening();
+            }
+
+        };
+
+
+        audio.play()
+            .catch(error => {
+
+                console.error(
+                    "Audio playback error:",
+                    error
+                );
+
+                URL.revokeObjectURL(audioUrl);
+
+                isProcessing = false;
+
+                if (isRunning) {
+                    startListening();
+                }
+
+            });
+
+
+    } catch (error) {
+
+        console.error(
+            "Base64 audio error:",
+            error
+        );
+
+        isProcessing = false;
+
+        startListening();
+
+    }
+
+}
+
+
+/* ================================
+   TAMIL SPEECH
+================================ */
+
+function speakTamil(text) {
+
+    if (!text) {
+
+        console.error(
+            "No Tamil text received"
+        );
+
+        isProcessing = false;
+
+        startListening();
+
+        return;
+    }
+
+
+    speechSynthesis.cancel();
+
+
+    const utterance =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+
+    utterance.lang =
+        "ta-IN";
+
+    utterance.rate =
+        0.95;
+
+    utterance.pitch =
+        1.0;
+
+    utterance.volume =
+        1.0;
+
+
+    const voices =
+        speechSynthesis.getVoices();
+
+
+    const tamilVoice =
+        voices.find(
+            voice =>
+                voice.lang
+                    .toLowerCase()
+                    .startsWith("ta")
+        );
+
+
+    if (tamilVoice) {
+
+        utterance.voice =
+            tamilVoice;
+
+        console.log(
+            "Tamil voice:",
+            tamilVoice.name
+        );
+
+    } else {
+
+        console.warn(
+            "Tamil voice not found. Browser fallback may be used."
+        );
+
+    }
+
+
+    statusText.textContent =
+        "JARVIS speaking Tamil...";
+
+
+    utterance.onend =
+        () => {
+
+            isProcessing = false;
+
+            if (isRunning) {
+                startListening();
+            }
+
+        };
+
+
+    utterance.onerror =
+        event => {
+
+            console.error(
+                "Tamil speech error:",
+                event
+            );
+
+            isProcessing = false;
+
+            if (isRunning) {
+                startListening();
+            }
+
+        };
+
+
+    speechSynthesis.speak(
+        utterance
+    );
+
+}
+
+
+/* ================================
+   STOP EVERYTHING
+================================ */
+
+function stopEverything() {
+
+    isRunning = false;
+    isProcessing = false;
+
+    clearTimeout(silenceTimer);
+    silenceTimer = null;
+
+    clearTimeout(volumeTimer);
+    volumeTimer = null;
+
+
+    if (
+        mediaRecorder &&
+        mediaRecorder.state === "recording"
+    ) {
+
+        mediaRecorder.stop();
+
+    }
+
+
+    if (stream) {
+
+        stream
+            .getTracks()
+            .forEach(track =>
+                track.stop()
+            );
+
+        stream = null;
+
+    }
+
+
+    speechSynthesis.cancel();
+
+
+    if (audioContext) {
+
+        audioContext.close()
+            .catch(() => {});
+
+        audioContext = null;
+
+    }
+
+
+    micButton.classList.remove(
+        "active"
+    );
+
+    micButton.classList.add(
+        "stop"
+    );
+
+    micButton.textContent =
+        "🛑";
+
+
+    statusText.textContent =
+        "Stopped";
+
+
+    volumeBar.style.width =
+        "0%";
+
+}
+
+
+/* ================================
+   LOAD VOICES
+================================ */
+
+speechSynthesis.onvoiceschanged =
+    () => {
+
+        const voices =
+            speechSynthesis.getVoices();
+
+        console.log(
+            "Available voices:",
+            voices.map(
+                v => ({
+                    name: v.name,
+                    language: v.lang
+                })
+            )
+        );
+
+    };
+
+</script>
+
+</body>
+</html>
