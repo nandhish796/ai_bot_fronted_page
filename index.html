@@ -8,6 +8,7 @@
     <title>JARVIS AI Assistant</title>
 
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -15,9 +16,17 @@
         body {
             margin: 0;
             min-height: 100vh;
+
             background:
-                radial-gradient(circle at center, #10243a 0%, #050b12 45%, #020408 100%);
+                radial-gradient(
+                    circle at center,
+                    #10243a 0%,
+                    #050b12 45%,
+                    #020408 100%
+                );
+
             color: #e8f7ff;
+
             font-family: Arial, sans-serif;
 
             display: flex;
@@ -33,7 +42,9 @@
         .title {
             font-size: 42px;
             letter-spacing: 8px;
+
             margin-bottom: 8px;
+
             color: #9eeaff;
 
             text-shadow:
@@ -48,6 +59,7 @@
         .mic-area {
             display: flex;
             justify-content: center;
+
             margin-bottom: 25px;
         }
 
@@ -60,7 +72,11 @@
             border: 2px solid #00c8ff;
 
             background:
-                radial-gradient(circle, #123b54, #06111b);
+                radial-gradient(
+                    circle,
+                    #123b54,
+                    #06111b
+                );
 
             color: white;
 
@@ -95,8 +111,9 @@
                 inset 0 0 30px #8f0000;
         }
 
-        .volume-container {
+        .timer-container {
             width: min(500px, 90%);
+
             height: 8px;
 
             background: #15232d;
@@ -108,13 +125,14 @@
             overflow: hidden;
         }
 
-        #volumeBar {
+        #timerBar {
             height: 100%;
+
             width: 0%;
 
             background: #00d9ff;
 
-            transition: width 0.08s linear;
+            transition: width 0.1s linear;
         }
 
         #statusText {
@@ -149,81 +167,98 @@
 
         .user {
             background: #102d40;
-            border-left: 3px solid #00bfff;
+
+            border-left:
+                3px solid #00bfff;
         }
 
         .jarvis {
             background: #142c24;
-            border-left: 3px solid #00ffae;
+
+            border-left:
+                3px solid #00ffae;
         }
 
         .label {
             font-size: 12px;
+
             opacity: 0.6;
+
             margin-bottom: 4px;
         }
+
     </style>
+
 </head>
 
 
 <body>
 
-    <div class="container">
 
-        <div class="title">
-            JARVIS
-        </div>
+<div class="container">
 
-        <div class="status">
-            Personal AI Voice Assistant
-        </div>
 
-        <div class="mic-area">
+    <div class="title">
+        JARVIS
+    </div>
 
-            <button id="micButton">
-                🎤
-            </button>
 
-        </div>
+    <div class="status">
+        Personal AI Voice Assistant
+    </div>
 
-        <div id="statusText">
-            Click the microphone to start
-        </div>
 
-        <div class="volume-container">
+    <div class="mic-area">
 
-            <div id="volumeBar"></div>
-
-        </div>
-
-        <div id="conversation"
-             class="conversation">
-        </div>
+        <button id="micButton">
+            🎤
+        </button>
 
     </div>
 
 
+    <div id="statusText">
+        Click the microphone to start
+    </div>
+
+
+    <div class="timer-container">
+
+        <div id="timerBar"></div>
+
+    </div>
+
+
+    <div id="conversation"
+         class="conversation">
+    </div>
+
+
+</div>
+
+
+
 <script>
 
-/* =========================================================
-   CONFIGURATION
-========================================================= */
+
+/* =====================================================
+   N8N WEBHOOK
+===================================================== */
 
 const N8N_WEBHOOK =
     "https://nandhish.app.n8n.cloud/webhook/jarvis";
 
-const SILENCE_DURATION = 2200;
 
-const MIN_RECORDING_TIME = 700;
+/* =====================================================
+   TEST RECORDING TIME
+===================================================== */
 
-const SILENCE_THRESHOLD = 0.025;
-
-const VOLUME_CHECK_INTERVAL = 80;
+const RECORDING_DURATION = 5000;
 
 
-/* =========================================================
-   GLOBAL VARIABLES
-========================================================= */
+/* =====================================================
+   VARIABLES
+===================================================== */
 
 let stream = null;
 
@@ -231,43 +266,46 @@ let mediaRecorder = null;
 
 let audioContext = null;
 
-let analyser = null;
-
-let source = null;
-
-let silenceTimer = null;
-
-let volumeTimer = null;
-
-let recordingStartTime = 0;
-
-let hasSpeech = false;
-
 let isRunning = false;
 
 let isProcessing = false;
 
+let recordingTimer = null;
 
-/* =========================================================
+let progressTimer = null;
+
+
+/* =====================================================
    ELEMENTS
-========================================================= */
+===================================================== */
 
 const micButton =
-    document.getElementById("micButton");
+    document.getElementById(
+        "micButton"
+    );
+
 
 const statusText =
-    document.getElementById("statusText");
+    document.getElementById(
+        "statusText"
+    );
 
-const volumeBar =
-    document.getElementById("volumeBar");
+
+const timerBar =
+    document.getElementById(
+        "timerBar"
+    );
+
 
 const conversation =
-    document.getElementById("conversation");
+    document.getElementById(
+        "conversation"
+    );
 
 
-/* =========================================================
-   MICROPHONE BUTTON
-========================================================= */
+/* =====================================================
+   BUTTON
+===================================================== */
 
 micButton.addEventListener(
     "click",
@@ -287,49 +325,70 @@ micButton.addEventListener(
 );
 
 
-/* =========================================================
+/* =====================================================
    START LISTENING
-========================================================= */
+===================================================== */
 
 async function startListening() {
 
     if (isProcessing) {
+
         return;
+
     }
+
 
     try {
 
         /*
-        Get microphone only once
+        Get microphone
         */
 
         if (!stream) {
 
             stream =
-                await navigator.mediaDevices
+                await navigator
+                    .mediaDevices
                     .getUserMedia({
+
                         audio: {
+
                             echoCancellation: true,
+
                             noiseSuppression: true,
+
                             autoGainControl: true
+
                         }
+
                     });
+
 
             console.log(
                 "Microphone permission granted"
             );
 
-            await setupAudioAnalyser();
         }
 
 
         /*
-        Make sure AudioContext is running
+        AudioContext
         */
 
+        if (!audioContext) {
+
+            audioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+        }
+
+
         if (
-            audioContext &&
-            audioContext.state === "suspended"
+            audioContext.state ===
+            "suspended"
         ) {
 
             await audioContext.resume();
@@ -337,10 +396,18 @@ async function startListening() {
         }
 
 
+        console.log(
+            "AudioContext:",
+            audioContext.state
+        );
+
+
         isRunning = true;
 
-        hasSpeech = false;
 
+        /*
+        Button UI
+        */
 
         micButton.classList.add(
             "active"
@@ -352,10 +419,6 @@ async function startListening() {
 
         micButton.textContent =
             "🎤";
-
-
-        statusText.textContent =
-            "Listening...";
 
 
         /*
@@ -372,9 +435,11 @@ async function startListening() {
             error
         );
 
+
         statusText.textContent =
             "Microphone error: " +
             error.message;
+
 
         isRunning = false;
 
@@ -383,261 +448,38 @@ async function startListening() {
 }
 
 
-/* =========================================================
-   AUDIO ANALYSER
-========================================================= */
-
-async function setupAudioAnalyser() {
-
-    try {
-
-        audioContext =
-            new (
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
-
-
-        /*
-        Chrome can initially suspend AudioContext.
-        */
-
-        if (
-            audioContext.state === "suspended"
-        ) {
-
-            await audioContext.resume();
-
-        }
-
-
-        analyser =
-            audioContext.createAnalyser();
-
-
-        analyser.fftSize =
-            2048;
-
-
-        analyser.smoothingTimeConstant =
-            0.3;
-
-
-        source =
-            audioContext.createMediaStreamSource(
-                stream
-            );
-
-
-        source.connect(
-            analyser
-        );
-
-
-        console.log(
-            "AudioContext:",
-            audioContext.state
-        );
-
-
-        console.log(
-            "Microphone analyser connected"
-        );
-
-
-        /*
-        Start volume monitoring
-        */
-
-        monitorVolume();
-
-
-    } catch (error) {
-
-        console.error(
-            "Audio analyser error:",
-            error
-        );
-
-        statusText.textContent =
-            "Audio analyser error";
-
-    }
-
-}
-
-
-/* =========================================================
-   VOLUME MONITOR
-========================================================= */
-
-function monitorVolume() {
-
-    if (!analyser) {
-        return;
-    }
-
-
-    const bufferLength =
-        analyser.fftSize;
-
-
-    const dataArray =
-        new Uint8Array(
-            bufferLength
-        );
-
-
-    function checkVolume() {
-
-        /*
-        Stop monitoring when JARVIS is stopped
-        */
-
-        if (!isRunning) {
-
-            volumeBar.style.width =
-                "0%";
-
-            volumeTimer = null;
-
-            return;
-        }
-
-
-        analyser.getByteTimeDomainData(
-            dataArray
-        );
-
-
-        let sum = 0;
-
-
-        for (
-            let i = 0;
-            i < bufferLength;
-            i++
-        ) {
-
-            const value =
-                (dataArray[i] - 128) / 128;
-
-
-            sum +=
-                value * value;
-
-        }
-
-
-        const rms =
-            Math.sqrt(
-                sum / bufferLength
-            );
-
-
-        /*
-        Convert microphone volume
-        to percentage
-        */
-
-        const percentage =
-            Math.min(
-                100,
-                rms * 500
-            );
-
-
-        volumeBar.style.width =
-            percentage + "%";
-
-
-        /*
-        Detect speech
-        */
-
-        if (
-            mediaRecorder &&
-            mediaRecorder.state === "recording"
-        ) {
-
-            if (
-                rms > SILENCE_THRESHOLD
-            ) {
-
-                /*
-                User is speaking
-                */
-
-                hasSpeech = true;
-
-
-                clearTimeout(
-                    silenceTimer
-                );
-
-
-                silenceTimer = null;
-
-
-            } else if (
-                hasSpeech &&
-                !silenceTimer &&
-                Date.now() -
-                    recordingStartTime >
-                    MIN_RECORDING_TIME
-            ) {
-
-                /*
-                User stopped speaking.
-                Wait before submitting.
-                */
-
-                silenceTimer =
-                    setTimeout(
-                        () => {
-
-                            if (
-                                mediaRecorder &&
-                                mediaRecorder.state ===
-                                    "recording"
-                            ) {
-
-                                mediaRecorder.stop();
-
-                            }
-
-                        },
-                        SILENCE_DURATION
-                    );
-
-            }
-
-        }
-
-
-        volumeTimer =
-            setTimeout(
-                checkVolume,
-                VOLUME_CHECK_INTERVAL
-            );
-
-    }
-
-
-    checkVolume();
-
-}
-
-
-/* =========================================================
+/* =====================================================
    START RECORDER
-========================================================= */
+===================================================== */
 
 function startRecorder() {
 
+    if (!stream) {
+
+        console.error(
+            "No microphone stream"
+        );
+
+        return;
+
+    }
+
+
+    if (!isRunning) {
+
+        return;
+
+    }
+
+
+    /*
+    Prevent duplicate recorder
+    */
+
     if (
-        !stream ||
-        !isRunning
+        mediaRecorder &&
+        mediaRecorder.state ===
+        "recording"
     ) {
 
         return;
@@ -646,32 +488,17 @@ function startRecorder() {
 
 
     /*
-    Don't create another recorder
-    if one is already recording.
+    Audio chunks
     */
-
-    if (
-        mediaRecorder &&
-        mediaRecorder.state ===
-            "recording"
-    ) {
-
-        return;
-
-    }
-
-
-    hasSpeech = false;
-
 
     const chunks = [];
 
 
-    try {
+    /*
+    Create recorder
+    */
 
-        /*
-        Chrome WebM recording
-        */
+    try {
 
         mediaRecorder =
             new MediaRecorder(
@@ -682,7 +509,6 @@ function startRecorder() {
                 }
             );
 
-
     } catch (error) {
 
         console.error(
@@ -690,8 +516,9 @@ function startRecorder() {
             error
         );
 
+
         statusText.textContent =
-            "Browser does not support audio recording.";
+            "Recording is not supported.";
 
         return;
 
@@ -699,7 +526,7 @@ function startRecorder() {
 
 
     /*
-    Audio data available
+    Audio data
     */
 
     mediaRecorder.ondataavailable =
@@ -727,24 +554,20 @@ function startRecorder() {
         async () => {
 
             clearTimeout(
-                silenceTimer
+                recordingTimer
             );
 
-            silenceTimer = null;
+
+            clearInterval(
+                progressTimer
+            );
 
 
-            /*
-            If user didn't speak,
-            immediately start another recording.
-            */
+            timerBar.style.width =
+                "0%";
 
-            if (!hasSpeech) {
 
-                if (isRunning) {
-
-                    startRecorder();
-
-                }
+            if (!isRunning) {
 
                 return;
 
@@ -752,7 +575,7 @@ function startRecorder() {
 
 
             /*
-            Create WebM audio
+            Create audio blob
             */
 
             const audioBlob =
@@ -771,6 +594,30 @@ function startRecorder() {
             );
 
 
+            if (
+                audioBlob.size === 0
+            ) {
+
+                console.error(
+                    "Empty audio"
+                );
+
+
+                statusText.textContent =
+                    "No audio recorded";
+
+
+                startRecorder();
+
+                return;
+
+            }
+
+
+            /*
+            Send to n8n
+            */
+
             await sendAudio(
                 audioBlob
             );
@@ -778,12 +625,8 @@ function startRecorder() {
         };
 
 
-    recordingStartTime =
-        Date.now();
-
-
     /*
-    Start recording
+    Start
     */
 
     mediaRecorder.start();
@@ -793,19 +636,105 @@ function startRecorder() {
         "Recording started"
     );
 
+
+    statusText.textContent =
+        "Listening... Speak now";
+
+
+    /*
+    Start progress bar
+    */
+
+    const startTime =
+        Date.now();
+
+
+    progressTimer =
+        setInterval(
+            () => {
+
+                if (!isRunning) {
+
+                    clearInterval(
+                        progressTimer
+                    );
+
+                    return;
+
+                }
+
+
+                const elapsed =
+                    Date.now() -
+                    startTime;
+
+
+                const percent =
+                    Math.min(
+                        100,
+                        (
+                            elapsed /
+                            RECORDING_DURATION
+                        ) * 100
+                    );
+
+
+                timerBar.style.width =
+                    percent + "%";
+
+
+            },
+            50
+        );
+
+
+    /*
+    Automatically stop
+    after 5 seconds
+    */
+
+    recordingTimer =
+        setTimeout(
+            () => {
+
+                if (
+                    mediaRecorder &&
+                    mediaRecorder.state ===
+                    "recording"
+                ) {
+
+                    console.log(
+                        "5 seconds completed"
+                    );
+
+
+                    statusText.textContent =
+                        "Sending to JARVIS...";
+
+
+                    mediaRecorder.stop();
+
+                }
+
+            },
+            RECORDING_DURATION
+        );
+
 }
 
 
-/* =========================================================
+/* =====================================================
    SEND AUDIO TO N8N
-========================================================= */
+===================================================== */
 
 async function sendAudio(
     audioBlob
 ) {
 
     if (!isRunning) {
+
         return;
+
     }
 
 
@@ -814,6 +743,12 @@ async function sendAudio(
 
     statusText.textContent =
         "JARVIS is thinking...";
+
+
+    console.log(
+        "Sending audio to:",
+        N8N_WEBHOOK
+    );
 
 
     /*
@@ -833,31 +768,36 @@ async function sendAudio(
 
     try {
 
-        console.log(
-            "Sending audio to n8n..."
-        );
-
+        /*
+        Send POST request
+        */
 
         const response =
             await fetch(
                 N8N_WEBHOOK,
                 {
                     method: "POST",
+
                     body: formData
                 }
             );
 
 
         console.log(
-            "n8n HTTP status:",
+            "n8n status:",
             response.status
         );
 
+
+        /*
+        Error
+        */
 
         if (!response.ok) {
 
             const errorText =
                 await response.text();
+
 
             throw new Error(
                 "n8n error " +
@@ -870,7 +810,7 @@ async function sendAudio(
 
 
         /*
-        n8n returns JSON
+        JSON response
         */
 
         const result =
@@ -884,9 +824,9 @@ async function sendAudio(
 
 
         /*
-        =====================================================
+        =================================================
         TAMIL
-        =====================================================
+        =================================================
         */
 
         if (
@@ -908,9 +848,9 @@ async function sendAudio(
 
 
         /*
-        =====================================================
+        =================================================
         ENGLISH
-        =====================================================
+        =================================================
         */
 
         if (
@@ -941,9 +881,20 @@ async function sendAudio(
         isProcessing = false;
 
 
+        statusText.textContent =
+            "Unknown response language";
+
+
         if (isRunning) {
 
-            startListening();
+            setTimeout(
+                () => {
+
+                    startRecorder();
+
+                },
+                1000
+            );
 
         }
 
@@ -951,7 +902,7 @@ async function sendAudio(
     } catch (error) {
 
         console.error(
-            "Request error:",
+            "n8n request error:",
             error
         );
 
@@ -963,9 +914,20 @@ async function sendAudio(
         isProcessing = false;
 
 
+        /*
+        Continue listening
+        */
+
         if (isRunning) {
 
-            startListening();
+            setTimeout(
+                () => {
+
+                    startRecorder();
+
+                },
+                1000
+            );
 
         }
 
@@ -974,9 +936,9 @@ async function sendAudio(
 }
 
 
-/* =========================================================
-   PLAY ENGLISH SPRAG AUDIO
-========================================================= */
+/* =====================================================
+   ENGLISH AUDIO
+===================================================== */
 
 function playEnglish(
     base64Audio
@@ -992,7 +954,15 @@ function playEnglish(
         isProcessing = false;
 
 
-        startListening();
+        statusText.textContent =
+            "No English audio received";
+
+
+        if (isRunning) {
+
+            startRecorder();
+
+        }
 
 
         return;
@@ -1003,11 +973,13 @@ function playEnglish(
     try {
 
         /*
-        Convert Base64 to binary
+        Base64 → binary
         */
 
         const binaryString =
-            atob(base64Audio);
+            atob(
+                base64Audio
+            );
 
 
         const bytes =
@@ -1029,7 +1001,7 @@ function playEnglish(
 
 
         /*
-        Create WAV blob
+        WAV blob
         */
 
         const blob =
@@ -1059,7 +1031,7 @@ function playEnglish(
 
 
         /*
-        Audio finished
+        Finished
         */
 
         audio.onended =
@@ -1076,7 +1048,11 @@ function playEnglish(
 
                 if (isRunning) {
 
-                    startListening();
+                    statusText.textContent =
+                        "Listening...";
+
+
+                    startRecorder();
 
                 }
 
@@ -1084,7 +1060,7 @@ function playEnglish(
 
 
         /*
-        Audio error
+        Error
         */
 
         audio.onerror =
@@ -1107,7 +1083,7 @@ function playEnglish(
 
                 if (isRunning) {
 
-                    startListening();
+                    startRecorder();
 
                 }
 
@@ -1115,7 +1091,7 @@ function playEnglish(
 
 
         /*
-        Play audio
+        Play
         */
 
         audio.play()
@@ -1123,7 +1099,7 @@ function playEnglish(
                 error => {
 
                     console.error(
-                        "Audio playback error:",
+                        "Audio play error:",
                         error
                     );
 
@@ -1139,7 +1115,7 @@ function playEnglish(
 
                     if (isRunning) {
 
-                        startListening();
+                        startRecorder();
 
                     }
 
@@ -1150,7 +1126,7 @@ function playEnglish(
     } catch (error) {
 
         console.error(
-            "Base64 audio error:",
+            "Base64 conversion error:",
             error
         );
 
@@ -1161,7 +1137,7 @@ function playEnglish(
 
         if (isRunning) {
 
-            startListening();
+            startRecorder();
 
         }
 
@@ -1170,9 +1146,9 @@ function playEnglish(
 }
 
 
-/* =========================================================
-   TAMIL BROWSER SPEECH
-========================================================= */
+/* =====================================================
+   TAMIL SPEECH
+===================================================== */
 
 function speakTamil(
     text
@@ -1181,7 +1157,7 @@ function speakTamil(
     if (!text) {
 
         console.error(
-            "No Tamil text received"
+            "No Tamil text"
         );
 
 
@@ -1189,7 +1165,11 @@ function speakTamil(
             false;
 
 
-        startListening();
+        if (isRunning) {
+
+            startRecorder();
+
+        }
 
 
         return;
@@ -1204,6 +1184,10 @@ function speakTamil(
     speechSynthesis.cancel();
 
 
+    /*
+    Create speech
+    */
+
     const utterance =
         new SpeechSynthesisUtterance(
             text
@@ -1211,7 +1195,7 @@ function speakTamil(
 
 
     /*
-    Tamil language
+    Tamil
     */
 
     utterance.lang =
@@ -1243,7 +1227,9 @@ function speakTamil(
             voice =>
                 voice.lang
                     .toLowerCase()
-                    .startsWith("ta")
+                    .startsWith(
+                        "ta"
+                    )
         );
 
 
@@ -1254,16 +1240,15 @@ function speakTamil(
 
 
         console.log(
-            "Tamil voice selected:",
+            "Tamil voice:",
             tamilVoice.name,
             tamilVoice.lang
         );
 
-
     } else {
 
         console.warn(
-            "Tamil voice not found. Browser fallback may be used."
+            "Tamil voice not found"
         );
 
     }
@@ -1274,7 +1259,7 @@ function speakTamil(
 
 
     /*
-    Tamil speech finished
+    Finished
     */
 
     utterance.onend =
@@ -1291,7 +1276,11 @@ function speakTamil(
 
             if (isRunning) {
 
-                startListening();
+                statusText.textContent =
+                    "Listening...";
+
+
+                startRecorder();
 
             }
 
@@ -1299,7 +1288,7 @@ function speakTamil(
 
 
     /*
-    Tamil speech error
+    Error
     */
 
     utterance.onerror =
@@ -1317,7 +1306,7 @@ function speakTamil(
 
             if (isRunning) {
 
-                startListening();
+                startRecorder();
 
             }
 
@@ -1335,9 +1324,9 @@ function speakTamil(
 }
 
 
-/* =========================================================
+/* =====================================================
    STOP EVERYTHING
-========================================================= */
+===================================================== */
 
 function stopEverything() {
 
@@ -1359,18 +1348,20 @@ function stopEverything() {
     */
 
     clearTimeout(
-        silenceTimer
+        recordingTimer
     );
 
-    silenceTimer =
+
+    clearInterval(
+        progressTimer
+    );
+
+
+    recordingTimer =
         null;
 
 
-    clearTimeout(
-        volumeTimer
-    );
-
-    volumeTimer =
+    progressTimer =
         null;
 
 
@@ -1381,7 +1372,7 @@ function stopEverything() {
     if (
         mediaRecorder &&
         mediaRecorder.state ===
-            "recording"
+        "recording"
     ) {
 
         mediaRecorder.stop();
@@ -1390,7 +1381,7 @@ function stopEverything() {
 
 
     /*
-    Stop microphone tracks
+    Stop microphone
     */
 
     if (stream) {
@@ -1422,7 +1413,8 @@ function stopEverything() {
 
     if (audioContext) {
 
-        audioContext.close()
+        audioContext
+            .close()
             .catch(
                 () => {}
             );
@@ -1432,14 +1424,6 @@ function stopEverything() {
             null;
 
     }
-
-
-    analyser =
-        null;
-
-
-    source =
-        null;
 
 
     /*
@@ -1464,21 +1448,22 @@ function stopEverything() {
         "Stopped";
 
 
-    volumeBar.style.width =
+    timerBar.style.width =
         "0%";
 
 }
 
 
-/* =========================================================
-   LOAD AVAILABLE VOICES
-========================================================= */
+/* =====================================================
+   BROWSER VOICES
+===================================================== */
 
 speechSynthesis.onvoiceschanged =
     () => {
 
         const voices =
-            speechSynthesis.getVoices();
+            speechSynthesis
+                .getVoices();
 
 
         console.log(
@@ -1489,11 +1474,13 @@ speechSynthesis.onvoiceschanged =
         console.table(
             voices.map(
                 voice => ({
+
                     name:
                         voice.name,
 
                     language:
                         voice.lang
+
                 })
             )
         );
@@ -1501,9 +1488,9 @@ speechSynthesis.onvoiceschanged =
     };
 
 
-/* =========================================================
-   INITIAL VOICE LOAD
-========================================================= */
+/* =====================================================
+   INITIAL LOAD
+===================================================== */
 
 window.addEventListener(
     "load",
@@ -1518,4 +1505,5 @@ window.addEventListener(
 </script>
 
 </body>
+
 </html>
