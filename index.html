@@ -1,239 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>JARVIS - AI Voice Assistant</title>
+    <title>JARVIS AI Assistant</title>
 
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background:
-            radial-gradient(circle at top, #172554, #020617 55%);
-        color: white;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at center, #102030 0%, #05080c 45%, #020305 100%);
+            color: white;
+            font-family: Arial, sans-serif;
 
-    .container {
-        width: 90%;
-        max-width: 600px;
-        text-align: center;
-        padding: 40px 25px;
-    }
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
-    .title {
-        font-size: 52px;
-        font-weight: bold;
-        letter-spacing: 6px;
-        color: #38bdf8;
-        text-shadow:
-            0 0 10px #38bdf8,
-            0 0 30px #0284c7;
-    }
+            overflow: hidden;
+        }
 
-    .subtitle {
-        margin-top: 10px;
-        color: #94a3b8;
-        font-size: 16px;
-    }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            padding: 30px;
+        }
 
-    .orb {
-        width: 190px;
-        height: 190px;
-        margin: 45px auto 30px;
+        /* =========================
+           JARVIS ARC
+        ========================= */
 
-        border-radius: 50%;
+        .jarvis-core {
+            width: 240px;
+            height: 240px;
 
-        background:
-            radial-gradient(
-                circle,
-                #38bdf8 0%,
-                #0284c7 35%,
-                #0f172a 70%
-            );
+            margin: 0 auto 35px;
 
-        box-shadow:
-            0 0 30px #0ea5e9,
-            0 0 80px rgba(14,165,233,0.5);
+            border-radius: 50%;
 
-        transition: 0.3s;
-    }
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
-    .orb.active {
-        animation: pulse 1.5s infinite;
-    }
+            position: relative;
 
-    .orb.processing {
-        animation: processing 0.8s infinite alternate;
-    }
+            background:
+                radial-gradient(circle,
+                    rgba(0, 220, 255, 0.35) 0%,
+                    rgba(0, 150, 255, 0.15) 35%,
+                    rgba(0, 0, 0, 0.2) 70%);
 
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
             box-shadow:
-                0 0 30px #0ea5e9,
-                0 0 80px rgba(14,165,233,0.5);
+                0 0 25px rgba(0, 200, 255, 0.4),
+                0 0 60px rgba(0, 150, 255, 0.2),
+                inset 0 0 40px rgba(0, 200, 255, 0.15);
+
+            transition: 0.3s;
         }
 
-        50% {
-            transform: scale(1.08);
+        .jarvis-core::before {
+            content: "";
+
+            position: absolute;
+
+            width: 200px;
+            height: 200px;
+
+            border-radius: 50%;
+
+            border: 2px solid rgba(0, 220, 255, 0.5);
+
             box-shadow:
-                0 0 50px #38bdf8,
-                0 0 120px rgba(14,165,233,0.7);
+                0 0 15px rgba(0, 220, 255, 0.5);
+
+            animation: rotate 8s linear infinite;
         }
 
-        100% {
-            transform: scale(1);
-        }
-    }
+        .jarvis-core::after {
+            content: "";
 
-    @keyframes processing {
-        from {
-            transform: scale(1);
+            position: absolute;
+
+            width: 165px;
+            height: 165px;
+
+            border-radius: 50%;
+
+            border: 1px dashed rgba(0, 200, 255, 0.35);
+
+            animation: rotateReverse 10s linear infinite;
         }
 
-        to {
+        .core-light {
+            width: 80px;
+            height: 80px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(circle,
+                    #ffffff 0%,
+                    #55eaff 20%,
+                    #00bfff 45%,
+                    #0077ff 70%,
+                    transparent 72%);
+
+            box-shadow:
+                0 0 20px #00d9ff,
+                0 0 50px #008cff,
+                0 0 90px rgba(0, 150, 255, 0.5);
+
+            animation: pulse 2s infinite;
+        }
+
+        .listening .jarvis-core {
+            box-shadow:
+                0 0 35px rgba(0, 255, 255, 0.7),
+                0 0 100px rgba(0, 180, 255, 0.35),
+                inset 0 0 50px rgba(0, 255, 255, 0.2);
+        }
+
+        .speaking .jarvis-core {
+            animation: speakingGlow 0.7s infinite alternate;
+        }
+
+        /* =========================
+           TEXT
+        ========================= */
+
+        .title {
+            font-size: 42px;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+
+            text-shadow:
+                0 0 15px rgba(0, 200, 255, 0.8);
+        }
+
+        .subtitle {
+            color: #7edfff;
+            font-size: 14px;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            min-height: 25px;
+
+            font-size: 16px;
+
+            color: #8ceaff;
+
+            margin-bottom: 20px;
+
+            transition: 0.3s;
+        }
+
+        /* =========================
+           RESPONSE
+        ========================= */
+
+        .response-box {
+            min-height: 90px;
+
+            padding: 20px;
+
+            margin: 0 auto 30px;
+
+            border-radius: 15px;
+
+            background: rgba(0, 20, 35, 0.55);
+
+            border: 1px solid rgba(0, 200, 255, 0.2);
+
+            box-shadow:
+                0 0 20px rgba(0, 150, 255, 0.08);
+
+            color: #d9f8ff;
+
+            line-height: 1.6;
+
+            font-size: 16px;
+
+            backdrop-filter: blur(10px);
+        }
+
+        /* =========================
+           BUTTON
+        ========================= */
+
+        .mic-button {
+            width: 85px;
+            height: 85px;
+
+            border-radius: 50%;
+
+            border: 2px solid #00d9ff;
+
+            background:
+                radial-gradient(circle,
+                    rgba(0, 200, 255, 0.3),
+                    rgba(0, 30, 50, 0.9));
+
+            color: white;
+
+            font-size: 32px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 0 20px rgba(0, 220, 255, 0.4);
+
+            transition: 0.2s;
+        }
+
+        .mic-button:hover {
             transform: scale(1.08);
+
+            box-shadow:
+                0 0 30px rgba(0, 220, 255, 0.7);
         }
-    }
 
-    .mic-button {
-        width: 90px;
-        height: 90px;
+        .mic-button.active {
+            background:
+                radial-gradient(circle,
+                    rgba(255, 60, 60, 0.4),
+                    rgba(50, 0, 0, 0.9));
 
-        border-radius: 50%;
-        border: none;
+            border-color: #ff5555;
 
-        background: #0284c7;
-        color: white;
+            box-shadow:
+                0 0 30px rgba(255, 60, 60, 0.7);
+        }
 
-        font-size: 38px;
+        .hint {
+            margin-top: 15px;
 
-        cursor: pointer;
+            color: #557080;
 
-        box-shadow:
-            0 0 20px rgba(14,165,233,0.6);
+            font-size: 12px;
+        }
 
-        transition: 0.3s;
-    }
+        /* =========================
+           ANIMATIONS
+        ========================= */
 
-    .mic-button:hover {
-        transform: scale(1.08);
-    }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(0.9);
+                opacity: 0.75;
+            }
 
-    .mic-button.active {
-        background: #dc2626;
-        box-shadow:
-            0 0 25px rgba(239,68,68,0.8);
-    }
+            50% {
+                transform: scale(1.08);
+                opacity: 1;
+            }
+        }
 
-    .status {
-        margin-top: 25px;
-        min-height: 25px;
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
 
-        font-size: 18px;
-        color: #e2e8f0;
-    }
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-    .language {
-        margin-top: 10px;
-        color: #64748b;
-        font-size: 14px;
-    }
+        @keyframes rotateReverse {
+            from {
+                transform: rotate(360deg);
+            }
 
-    .volume-container {
-        width: 100%;
-        max-width: 400px;
+            to {
+                transform: rotate(0deg);
+            }
+        }
 
-        height: 8px;
+        @keyframes speakingGlow {
+            from {
+                transform: scale(1);
+            }
 
-        background: #1e293b;
+            to {
+                transform: scale(1.06);
+            }
+        }
 
-        border-radius: 10px;
+        /* =========================
+           MOBILE
+        ========================= */
 
-        margin: 25px auto 0;
+        @media (max-width: 600px) {
 
-        overflow: hidden;
-    }
+            .container {
+                padding: 20px;
+            }
 
-    .volume-bar {
-        width: 0%;
-        height: 100%;
+            .jarvis-core {
+                width: 190px;
+                height: 190px;
+            }
 
-        background: #38bdf8;
+            .jarvis-core::before {
+                width: 160px;
+                height: 160px;
+            }
 
-        transition: width 0.05s linear;
-    }
+            .jarvis-core::after {
+                width: 130px;
+                height: 130px;
+            }
 
-    .instructions {
-        margin-top: 30px;
+            .title {
+                font-size: 30px;
+                letter-spacing: 5px;
+            }
 
-        color: #64748b;
-
-        font-size: 13px;
-
-        line-height: 1.6;
-    }
-
-    .online {
-        color: #22c55e;
-    }
-</style>
+            .response-box {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="container" id="app">
 
-    <div class="title">JARVIS</div>
+    <!-- JARVIS CORE -->
 
-    <div class="subtitle">
-        Personal AI Voice Assistant
+    <div class="jarvis-core">
+        <div class="core-light"></div>
     </div>
 
-    <div id="orb" class="orb"></div>
+    <!-- TITLE -->
+
+    <div class="title">
+        JARVIS
+    </div>
+
+    <div class="subtitle">
+        AI VOICE ASSISTANT
+    </div>
+
+    <!-- STATUS -->
+
+    <div class="status" id="status">
+        Click the microphone to start
+    </div>
+
+    <!-- RESPONSE -->
+
+    <div class="response-box" id="responseBox">
+        Hello sir. I'm ready.
+    </div>
+
+    <!-- MICROPHONE -->
 
     <button
         id="micButton"
         class="mic-button"
-        onclick="toggleJarvis()"
-    >
+        type="button"
+        onclick="toggleAssistant()">
+
         🎤
+
     </button>
 
-    <div id="statusText" class="status">
-        Click the microphone to start
-    </div>
-
-    <div id="languageText" class="language">
-        Ready
-    </div>
-
-    <div class="volume-container">
-        <div
-            id="volumeBar"
-            class="volume-bar"
-        ></div>
-    </div>
-
-    <div class="instructions">
-        Click once to start JARVIS.<br>
-        Speak normally and stop speaking when finished.<br>
-        JARVIS automatically detects silence and responds.<br>
-        Click again to stop.
+    <div class="hint">
+        Speak naturally • Silence detection enabled
     </div>
 
 </div>
+
 
 <script>
 
@@ -244,98 +392,182 @@
 const N8N_WEBHOOK =
     "https://nandhish.app.n8n.cloud/webhook/jarvis";
 
-/*
-   How long silence must continue before sending.
-   1800 = 1.8 seconds
-*/
-const SILENCE_DURATION = 1800;
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let mediaRecorder = null;
+
+let audioChunks = [];
+
+let audioStream = null;
+
+let audioContext = null;
+
+let analyser = null;
+
+let microphoneSource = null;
+
+let silenceTimer = null;
+
+let animationFrame = null;
+
+let isListening = false;
+
+let isSpeaking = false;
+
+let isProcessing = false;
+
 
 /*
-   Microphone sensitivity.
-
-   Lower = more sensitive
-   Higher = less sensitive
+    Silence configuration
 */
-const SILENCE_THRESHOLD = 0.015;
 
-/*
-   Ignore very short sounds/noise.
-*/
-const MIN_SPEECH_TIME = 500;
+const SILENCE_DELAY = 1800;
+
+const VOICE_THRESHOLD = 0.018;
 
 
 /* =========================================================
-   DOM
+   ELEMENTS
 ========================================================= */
 
 const micButton =
     document.getElementById("micButton");
 
 const statusText =
-    document.getElementById("statusText");
+    document.getElementById("status");
 
-const languageText =
-    document.getElementById("languageText");
+const responseBox =
+    document.getElementById("responseBox");
 
-const volumeBar =
-    document.getElementById("volumeBar");
-
-const orb =
-    document.getElementById("orb");
+const app =
+    document.getElementById("app");
 
 
 /* =========================================================
-   VARIABLES
+   STATUS
 ========================================================= */
 
-let stream = null;
+function setStatus(message) {
 
-let mediaRecorder = null;
+    statusText.textContent = message;
 
-let audioContext = null;
-
-let isRunning = false;
-
-let isProcessing = false;
-
-let volumeTimer = null;
-
-let silenceTimer = null;
-
-let speechSynthesisActive = false;
-
-
-/* =========================================================
-   TOGGLE JARVIS
-========================================================= */
-
-async function toggleJarvis() {
-
-    if (isRunning) {
-
-        stopJarvis();
-
-    } else {
-
-        await startJarvis();
-
-    }
 }
 
 
 /* =========================================================
-   START JARVIS
+   UI STATES
 ========================================================= */
 
-async function startJarvis() {
+function setListeningUI() {
+
+    app.classList.add("listening");
+
+    app.classList.remove("speaking");
+
+    micButton.classList.add("active");
+
+    micButton.textContent = "🛑";
+
+    setStatus("Listening...");
+
+}
+
+
+function setSpeakingUI() {
+
+    app.classList.remove("listening");
+
+    app.classList.add("speaking");
+
+    micButton.classList.remove("active");
+
+    micButton.textContent = "🔊";
+
+    setStatus("JARVIS is speaking...");
+
+}
+
+
+function setIdleUI() {
+
+    app.classList.remove("listening");
+
+    app.classList.remove("speaking");
+
+    micButton.classList.remove("active");
+
+    micButton.textContent = "🎤";
+
+    setStatus("Click the microphone to start");
+
+}
+
+
+/* =========================================================
+   TOGGLE ASSISTANT
+========================================================= */
+
+async function toggleAssistant() {
+
+    /*
+        If currently listening:
+        stop microphone.
+    */
+
+    if (isListening) {
+
+        stopRecording();
+
+        return;
+    }
+
+
+    /*
+        Don't start while JARVIS is speaking
+    */
+
+    if (isSpeaking) {
+
+        return;
+    }
+
+
+    /*
+        Don't start while processing
+    */
+
+    if (isProcessing) {
+
+        return;
+    }
+
+
+    await startRecording();
+
+}
+
+
+/* =========================================================
+   START RECORDING
+========================================================= */
+
+async function startRecording() {
 
     try {
 
-        console.log(
-            "Starting JARVIS..."
-        );
+        isProcessing = false;
 
-        stream =
+        audioChunks = [];
+
+
+        /*
+            Request microphone
+        */
+
+        audioStream =
             await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -344,12 +576,100 @@ async function startJarvis() {
                 }
             });
 
-        console.log(
-            "Microphone permission granted"
+
+        /*
+            Create MediaRecorder
+        */
+
+        mediaRecorder =
+            new MediaRecorder(
+                audioStream,
+                {
+                    mimeType: "audio/webm"
+                }
+            );
+
+
+        /*
+            Audio chunks
+        */
+
+        mediaRecorder.ondataavailable = event => {
+
+            if (event.data.size > 0) {
+
+                audioChunks.push(event.data);
+
+            }
+
+        };
+
+
+        /*
+            Recording finished
+        */
+
+        mediaRecorder.onstop = async () => {
+
+            cleanupAudioAnalysis();
+
+            stopMicrophone();
+
+            await sendAudio();
+
+        };
+
+
+        /*
+            Start recorder
+        */
+
+        mediaRecorder.start();
+
+
+        isListening = true;
+
+        setListeningUI();
+
+
+        /*
+            Start voice activity detection
+        */
+
+        startAudioAnalysis();
+
+
+        console.log("Recording started");
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Microphone error:",
+            error
         );
 
+        setStatus(
+            "Microphone permission required"
+        );
 
-        /* AudioContext */
+        alert(
+            "Please allow microphone access and try again."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   AUDIO ANALYSIS
+========================================================= */
+
+function startAudioAnalysis() {
+
+    try {
 
         audioContext =
             new (
@@ -358,627 +678,275 @@ async function startJarvis() {
             )();
 
 
-        if (
-            audioContext.state ===
-            "suspended"
-        ) {
+        analyser =
+            audioContext.createAnalyser();
 
-            await audioContext.resume();
+
+        analyser.fftSize = 2048;
+
+        analyser.smoothingTimeConstant = 0.8;
+
+
+        microphoneSource =
+            audioContext.createMediaStreamSource(
+                audioStream
+            );
+
+
+        microphoneSource.connect(
+            analyser
+        );
+
+
+        const dataArray =
+            new Uint8Array(
+                analyser.fftSize
+            );
+
+
+        let hasSpoken = false;
+
+        let silenceStart = null;
+
+
+        function detectVoice() {
+
+            if (!isListening) {
+
+                return;
+
+            }
+
+
+            analyser.getByteTimeDomainData(
+                dataArray
+            );
+
+
+            /*
+                Calculate RMS volume
+            */
+
+            let sum = 0;
+
+            for (
+                let i = 0;
+                i < dataArray.length;
+                i++
+            ) {
+
+                const value =
+                    (dataArray[i] - 128) / 128;
+
+                sum += value * value;
+
+            }
+
+
+            const rms =
+                Math.sqrt(
+                    sum / dataArray.length
+                );
+
+
+            /*
+                Voice detected
+            */
+
+            if (rms > VOICE_THRESHOLD) {
+
+                hasSpoken = true;
+
+                silenceStart = null;
+
+            }
+
+            /*
+                Silence
+            */
+
+            else {
+
+                if (hasSpoken) {
+
+                    if (silenceStart === null) {
+
+                        silenceStart =
+                            Date.now();
+
+                    }
+
+
+                    const silenceDuration =
+                        Date.now() -
+                        silenceStart;
+
+
+                    /*
+                        Stop after silence
+                    */
+
+                    if (
+                        silenceDuration >=
+                        SILENCE_DELAY
+                    ) {
+
+                        console.log(
+                            "Silence detected"
+                        );
+
+                        stopRecording();
+
+                        return;
+
+                    }
+
+                }
+
+            }
+
+
+            animationFrame =
+                requestAnimationFrame(
+                    detectVoice
+                );
 
         }
 
 
-        console.log(
-            "AudioContext:",
-            audioContext.state
-        );
+        detectVoice();
 
+    }
 
-        isRunning = true;
-
-        isProcessing = false;
-
-        micButton.classList.add("active");
-
-        micButton.textContent = "🛑";
-
-        orb.classList.add("active");
-
-        statusText.textContent =
-            "Listening...";
-
-        languageText.textContent =
-            "JARVIS online";
-
-        languageText.className =
-            "language online";
-
-
-        startRecorder();
-
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
-            "Microphone error:",
+            "Audio analysis error:",
             error
         );
 
-        statusText.textContent =
-            "Microphone error: " +
-            error.message;
-
     }
+
 }
 
 
 /* =========================================================
-   STOP JARVIS
+   STOP RECORDING
 ========================================================= */
 
-function stopJarvis() {
+function stopRecording() {
 
-    console.log(
-        "Stopping JARVIS..."
-    );
+    if (!mediaRecorder) {
 
+        return;
 
-    isRunning = false;
+    }
 
-    isProcessing = false;
-
-
-    /* Stop recorder */
 
     if (
-        mediaRecorder &&
-        mediaRecorder.state === "recording"
+        mediaRecorder.state ===
+        "recording"
     ) {
+
+        isListening = false;
+
+        setStatus(
+            "Processing..."
+        );
 
         mediaRecorder.stop();
 
     }
 
+}
 
-    /* Stop timers */
 
-    if (volumeTimer) {
+/* =========================================================
+   STOP MICROPHONE
+========================================================= */
 
-        clearInterval(volumeTimer);
+function stopMicrophone() {
 
-        volumeTimer = null;
+    if (!audioStream) {
+
+        return;
+
+    }
+
+
+    audioStream
+        .getTracks()
+        .forEach(track => {
+
+            track.stop();
+
+        });
+
+
+    audioStream = null;
+
+}
+
+
+/* =========================================================
+   CLEAN AUDIO ANALYSIS
+========================================================= */
+
+function cleanupAudioAnalysis() {
+
+    if (animationFrame) {
+
+        cancelAnimationFrame(
+            animationFrame
+        );
+
+        animationFrame = null;
 
     }
 
 
     if (silenceTimer) {
 
-        clearTimeout(silenceTimer);
+        clearTimeout(
+            silenceTimer
+        );
 
         silenceTimer = null;
 
     }
 
 
-    /* Stop speech */
+    if (microphoneSource) {
 
-    speechSynthesis.cancel();
+        try {
 
-    speechSynthesisActive = false;
+            microphoneSource.disconnect();
 
+        }
 
-    /* Stop microphone */
+        catch (error) {}
 
-    if (stream) {
-
-        stream
-            .getTracks()
-            .forEach(track => track.stop());
-
-        stream = null;
+        microphoneSource = null;
 
     }
 
 
-    /* Close AudioContext */
-
     if (audioContext) {
 
-        audioContext.close();
+        try {
+
+            audioContext.close();
+
+        }
+
+        catch (error) {}
 
         audioContext = null;
 
     }
 
 
-    micButton.classList.remove(
-        "active"
-    );
-
-    micButton.textContent = "🎤";
-
-    orb.classList.remove(
-        "active"
-    );
-
-    orb.classList.remove(
-        "processing"
-    );
-
-
-    volumeBar.style.width =
-        "0%";
-
-
-    statusText.textContent =
-        "JARVIS stopped";
-
-    languageText.textContent =
-        "Ready";
-
-    languageText.className =
-        "language";
-
-}
-
-
-/* =========================================================
-   START RECORDER
-========================================================= */
-
-function startRecorder() {
-
-    if (
-        !stream ||
-        !isRunning ||
-        isProcessing
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        mediaRecorder &&
-        mediaRecorder.state ===
-        "recording"
-    ) {
-
-        return;
-
-    }
-
-
-    console.log(
-        "Starting recorder..."
-    );
-
-
-    const chunks = [];
-
-    let hasSpeech = false;
-
-    let speechStartedAt = 0;
-
-    let silenceStartedAt = null;
-
-
-    /* =====================================================
-       ANALYSER
-    ===================================================== */
-
-    let source = null;
-
-    let analyser = null;
-
-    let dataArray = null;
-
-
-    try {
-
-        source =
-            audioContext.createMediaStreamSource(
-                stream
-            );
-
-        analyser =
-            audioContext.createAnalyser();
-
-        analyser.fftSize = 2048;
-
-        analyser.smoothingTimeConstant =
-            0.3;
-
-        source.connect(analyser);
-
-        dataArray =
-            new Uint8Array(
-                analyser.fftSize
-            );
-
-        console.log(
-            "Microphone analyser connected"
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Analyser error:",
-            error
-        );
-
-    }
-
-
-    /* =====================================================
-       MEDIA RECORDER
-    ===================================================== */
-
-    try {
-
-        mediaRecorder =
-            new MediaRecorder(
-                stream,
-                {
-                    mimeType:
-                        "audio/webm"
-                }
-            );
-
-    } catch (error) {
-
-        console.error(
-            "MediaRecorder error:",
-            error
-        );
-
-        statusText.textContent =
-            "Recording is not supported.";
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       DATA AVAILABLE
-    ===================================================== */
-
-    mediaRecorder.ondataavailable =
-        event => {
-
-            if (
-                event.data &&
-                event.data.size > 0
-            ) {
-
-                chunks.push(
-                    event.data
-                );
-
-            }
-
-        };
-
-
-    /* =====================================================
-       RECORDER STOP
-    ===================================================== */
-
-    mediaRecorder.onstop =
-        async () => {
-
-            console.log(
-                "Recorder stopped"
-            );
-
-
-            /* Cleanup */
-
-            if (source) {
-
-                try {
-
-                    source.disconnect();
-
-                } catch (e) {}
-
-            }
-
-
-            if (volumeTimer) {
-
-                clearInterval(
-                    volumeTimer
-                );
-
-                volumeTimer = null;
-
-            }
-
-
-            if (silenceTimer) {
-
-                clearTimeout(
-                    silenceTimer
-                );
-
-                silenceTimer = null;
-
-            }
-
-
-            volumeBar.style.width =
-                "0%";
-
-
-            if (!isRunning) {
-
-                return;
-
-            }
-
-
-            /* Create audio */
-
-            const audioBlob =
-                new Blob(
-                    chunks,
-                    {
-                        type:
-                            "audio/webm"
-                    }
-                );
-
-
-            console.log(
-                "Recorded audio size:",
-                audioBlob.size
-            );
-
-
-            /* Ignore empty audio */
-
-            if (
-                audioBlob.size <
-                1000
-            ) {
-
-                console.log(
-                    "Audio too small"
-                );
-
-                isProcessing = false;
-
-                statusText.textContent =
-                    "Listening...";
-
-                setTimeout(
-                    () => {
-
-                        if (isRunning) {
-
-                            startRecorder();
-
-                        }
-
-                    },
-                    300
-                );
-
-                return;
-
-            }
-
-
-            /* Send audio */
-
-            await sendAudio(
-                audioBlob
-            );
-
-        };
-
-
-    /* =====================================================
-       START RECORDING
-    ===================================================== */
-
-    mediaRecorder.start();
-
-    console.log(
-        "Recording started"
-    );
-
-    statusText.textContent =
-        "Listening... Speak now";
-
-
-    /* =====================================================
-       VOLUME + SPEECH DETECTION
-    ===================================================== */
-
-    volumeTimer =
-        setInterval(
-            () => {
-
-                if (
-                    !isRunning ||
-                    !analyser
-                ) {
-
-                    return;
-
-                }
-
-
-                analyser.getByteTimeDomainData(
-                    dataArray
-                );
-
-
-                /* Calculate RMS */
-
-                let sum = 0;
-
-
-                for (
-                    let i = 0;
-                    i < dataArray.length;
-                    i++
-                ) {
-
-                    const value =
-                        (
-                            dataArray[i] -
-                            128
-                        ) / 128;
-
-                    sum +=
-                        value * value;
-
-                }
-
-
-                const rms =
-                    Math.sqrt(
-                        sum /
-                        dataArray.length
-                    );
-
-
-                /* Volume UI */
-
-                const percent =
-                    Math.min(
-                        100,
-                        rms * 500
-                    );
-
-
-                volumeBar.style.width =
-                    percent + "%";
-
-
-                /* =================================================
-                   SPEECH DETECTED
-                ================================================= */
-
-                if (
-                    rms >
-                    SILENCE_THRESHOLD
-                ) {
-
-                    /* New speech */
-
-                    if (!hasSpeech) {
-
-                        hasSpeech = true;
-
-                        speechStartedAt =
-                            Date.now();
-
-                        console.log(
-                            "Speech detected:",
-                            rms
-                        );
-
-                        statusText.textContent =
-                            "Listening...";
-
-                    }
-
-
-                    /* User is speaking */
-
-                    silenceStartedAt =
-                        null;
-
-                    if (silenceTimer) {
-
-                        clearTimeout(
-                            silenceTimer
-                        );
-
-                        silenceTimer =
-                            null;
-
-                    }
-
-                }
-
-
-                /* =================================================
-                   SILENCE DETECTED
-                ================================================= */
-
-                else if (
-                    hasSpeech
-                ) {
-
-                    const speechTime =
-                        Date.now() -
-                        speechStartedAt;
-
-
-                    /*
-                       Ignore very short noise
-                    */
-
-                    if (
-                        speechTime >=
-                        MIN_SPEECH_TIME
-                    ) {
-
-                        if (
-                            !silenceStartedAt
-                        ) {
-
-                            silenceStartedAt =
-                                Date.now();
-
-                            console.log(
-                                "Silence started"
-                            );
-
-
-                            /* Start silence timer */
-
-                            silenceTimer =
-                                setTimeout(
-                                    () => {
-
-                                        if (
-                                            mediaRecorder &&
-                                            mediaRecorder.state ===
-                                            "recording"
-                                        ) {
-
-                                            console.log(
-                                                "Silence detected. Sending..."
-                                            );
-
-                                            statusText.textContent =
-                                                "Sending to JARVIS...";
-
-                                            mediaRecorder.stop();
-
-                                        }
-
-                                    },
-                                    SILENCE_DURATION
-                                );
-
-                        }
-
-                    }
-
-                }
-
-            },
-            50
-        );
+    analyser = null;
 
 }
 
@@ -987,60 +955,100 @@ function startRecorder() {
    SEND AUDIO TO N8N
 ========================================================= */
 
-async function sendAudio(
-    audioBlob
-) {
+async function sendAudio() {
 
-    if (!isRunning) {
+    if (!audioChunks.length) {
+
+        console.log(
+            "No audio recorded"
+        );
+
+        setIdleUI();
 
         return;
 
     }
 
 
-    isProcessing = true;
+    /*
+        Create WebM audio
+    */
 
-
-    statusText.textContent =
-        "JARVIS is thinking...";
-
-    languageText.textContent =
-        "Processing";
-
-
-    orb.classList.remove(
-        "active"
-    );
-
-    orb.classList.add(
-        "processing"
-    );
+    const audioBlob =
+        new Blob(
+            audioChunks,
+            {
+                type: "audio/webm"
+            }
+        );
 
 
     console.log(
-        "Sending audio to:",
-        N8N_WEBHOOK
+        "Recorded audio size:",
+        audioBlob.size
     );
 
 
-    const formData =
-        new FormData();
+    if (audioBlob.size < 1000) {
 
+        console.log(
+            "Audio too small"
+        );
 
-    formData.append(
-        "data",
-        audioBlob,
-        "voice.webm"
-    );
+        setStatus(
+            "I didn't hear anything"
+        );
+
+        setTimeout(() => {
+
+            if (!isSpeaking && !isProcessing) {
+
+                startRecording();
+
+            }
+
+        }, 1000);
+
+        return;
+
+    }
 
 
     try {
+
+        isProcessing = true;
+
+
+        setStatus(
+            "JARVIS is thinking..."
+        );
+
+
+        /*
+            FormData
+        */
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "data",
+            audioBlob,
+            "voice.webm"
+        );
+
+
+        /*
+            Send to n8n
+        */
 
         const response =
             await fetch(
                 N8N_WEBHOOK,
                 {
                     method: "POST",
+
                     body: formData
                 }
             );
@@ -1054,18 +1062,16 @@ async function sendAudio(
 
         if (!response.ok) {
 
-            const errorText =
-                await response.text();
-
             throw new Error(
-                "n8n error " +
-                response.status +
-                ": " +
-                errorText
+                `n8n returned ${response.status}`
             );
 
         }
 
+
+        /*
+            Read JSON
+        */
 
         const result =
             await response.json();
@@ -1077,86 +1083,67 @@ async function sendAudio(
         );
 
 
-        /* =====================================================
-           TAMIL
-        ===================================================== */
+        /*
+            Show text
+        */
 
-        if (
-            result.language ===
-            "ta-IN"
-        ) {
+        if (result.text) {
 
-            languageText.textContent =
-                "Tamil";
+            responseBox.textContent =
+                result.text;
 
-            speakTamil(
-                result.text
+        }
+
+
+        /*
+            Audio required
+        */
+
+        if (!result.audioBase64) {
+
+            console.error(
+                "No audio received from n8n"
             );
+
+            setStatus(
+                "No audio received"
+            );
+
+            isProcessing = false;
+
+            setTimeout(() => {
+
+                if (!isSpeaking) {
+
+                    startRecording();
+
+                }
+
+            }, 1000);
 
             return;
 
         }
 
 
-        /* =====================================================
-           ENGLISH
-        ===================================================== */
-
-        if (
-            result.language ===
-            "en-US"
-        ) {
-
-            languageText.textContent =
-                "English";
-
-            playEnglish(
-                result.audioBase64
-            );
-
-            return;
-
-        }
-
-
-        /* =====================================================
-           UNKNOWN LANGUAGE
-        ===================================================== */
-
-        console.warn(
-            "Unknown response language:",
-            result.language
-        );
-
+        /*
+            Play JARVIS audio
+        */
 
         isProcessing = false;
 
-        orb.classList.remove(
-            "processing"
+        playJARVISAudio(
+            result.audioBase64,
+            result.mimeType ||
+            "audio/wav"
         );
 
-        statusText.textContent =
-            "Unknown response language";
+    }
 
-
-        if (isRunning) {
-
-            setTimeout(
-                () => {
-
-                    startRecorder();
-
-                },
-                500
-            );
-
-        }
-
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
-            "n8n request error:",
+            "Send audio error:",
             error
         );
 
@@ -1164,31 +1151,27 @@ async function sendAudio(
         isProcessing = false;
 
 
-        orb.classList.remove(
-            "processing"
+        setStatus(
+            "Connection error"
         );
 
 
-        statusText.textContent =
-            "Connection error";
+        /*
+            Try again
+        */
 
+        setTimeout(() => {
 
-        languageText.textContent =
-            "Error";
+            if (
+                !isSpeaking &&
+                !isProcessing
+            ) {
 
+                startRecording();
 
-        if (isRunning) {
+            }
 
-            setTimeout(
-                () => {
-
-                    startRecorder();
-
-                },
-                1000
-            );
-
-        }
+        }, 1500);
 
     }
 
@@ -1196,43 +1179,25 @@ async function sendAudio(
 
 
 /* =========================================================
-   ENGLISH AUDIO
+   PLAY JARVIS AUDIO
 ========================================================= */
 
-function playEnglish(
-    base64Audio
+function playJARVISAudio(
+    base64Audio,
+    mimeType = "audio/wav"
 ) {
 
-    if (!base64Audio) {
-
-        console.error(
-            "No English audio received"
-        );
-
-        isProcessing = false;
-
-        orb.classList.remove(
-            "processing"
-        );
-
-        statusText.textContent =
-            "No English audio received";
-
-
-        if (isRunning) {
-
-            startRecorder();
-
-        }
-
-        return;
-
-    }
+    console.log(
+        "Playing JARVIS audio:",
+        mimeType
+    );
 
 
     try {
 
-        /* Base64 → binary */
+        /*
+            Convert Base64 → binary
+        */
 
         const binaryString =
             atob(base64Audio);
@@ -1251,24 +1216,27 @@ function playEnglish(
         ) {
 
             bytes[i] =
-                binaryString.charCodeAt(
-                    i
-                );
+                binaryString.charCodeAt(i);
 
         }
 
 
-        /* Binary → WAV */
+        /*
+            Create audio Blob
+        */
 
         const blob =
             new Blob(
                 [bytes],
                 {
-                    type:
-                        "audio/wav"
+                    type: mimeType
                 }
             );
 
+
+        /*
+            Create audio URL
+        */
 
         const audioUrl =
             URL.createObjectURL(
@@ -1276,397 +1244,225 @@ function playEnglish(
             );
 
 
+        /*
+            Create audio element
+        */
+
         const audio =
             new Audio(
                 audioUrl
             );
 
 
-        statusText.textContent =
-            "JARVIS speaking...";
+        audio.volume = 1.0;
 
 
-        orb.classList.add(
-            "processing"
-        );
+        isSpeaking = true;
 
 
-        audio.onended =
-            () => {
+        setSpeakingUI();
 
-                console.log(
-                    "English speech finished"
-                );
 
+        /*
+            Audio started
+        */
 
-                URL.revokeObjectURL(
-                    audioUrl
-                );
-
-
-                isProcessing =
-                    false;
-
-
-                orb.classList.remove(
-                    "processing"
-                );
-
-
-                if (isRunning) {
-
-                    statusText.textContent =
-                        "Listening...";
-
-                    orb.classList.add(
-                        "active"
-                    );
-
-                    startRecorder();
-
-                }
-
-            };
-
-
-        audio.onerror =
-            error => {
-
-                console.error(
-                    "English audio error:",
-                    error
-                );
-
-
-                URL.revokeObjectURL(
-                    audioUrl
-                );
-
-
-                isProcessing =
-                    false;
-
-
-                orb.classList.remove(
-                    "processing"
-                );
-
-
-                if (isRunning) {
-
-                    startRecorder();
-
-                }
-
-            };
-
-
-        audio.play()
-            .catch(
-                error => {
-
-                    console.error(
-                        "Audio play error:",
-                        error
-                    );
-
-
-                    URL.revokeObjectURL(
-                        audioUrl
-                    );
-
-
-                    isProcessing =
-                        false;
-
-
-                    orb.classList.remove(
-                        "processing"
-                    );
-
-
-                    if (isRunning) {
-
-                        startRecorder();
-
-                    }
-
-                }
-            );
-
-
-    } catch (error) {
-
-        console.error(
-            "Base64 conversion error:",
-            error
-        );
-
-
-        isProcessing =
-            false;
-
-
-        orb.classList.remove(
-            "processing"
-        );
-
-
-        if (isRunning) {
-
-            startRecorder();
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   TAMIL SPEECH
-========================================================= */
-
-function speakTamil(
-    text
-) {
-
-    if (!text) {
-
-        console.error(
-            "No Tamil text"
-        );
-
-        isProcessing =
-            false;
-
-
-        if (isRunning) {
-
-            startRecorder();
-
-        }
-
-        return;
-
-    }
-
-
-    speechSynthesis.cancel();
-
-
-    const utterance =
-        new SpeechSynthesisUtterance(
-            text
-        );
-
-
-    utterance.lang =
-        "ta-IN";
-
-
-    utterance.rate =
-        0.95;
-
-
-    utterance.pitch =
-        1.0;
-
-
-    utterance.volume =
-        1.0;
-
-
-    /* Get browser voices */
-
-    const voices =
-        speechSynthesis.getVoices();
-
-
-    console.log(
-        "Available browser voices:",
-        voices
-    );
-
-
-    /* Find Tamil voice */
-
-    let tamilVoice =
-        voices.find(
-            voice =>
-                voice.lang
-                    .toLowerCase() ===
-                "ta-in"
-        );
-
-
-    /* Fallback */
-
-    if (!tamilVoice) {
-
-        tamilVoice =
-            voices.find(
-                voice =>
-                    voice.lang
-                        .toLowerCase()
-                        .startsWith("ta")
-            );
-
-    }
-
-
-    if (tamilVoice) {
-
-        utterance.voice =
-            tamilVoice;
-
-
-        console.log(
-            "Tamil voice selected:",
-            tamilVoice.name,
-            tamilVoice.lang
-        );
-
-    } else {
-
-        console.warn(
-            "Tamil voice not found. Browser will use its default voice."
-        );
-
-    }
-
-
-    statusText.textContent =
-        "JARVIS speaking Tamil...";
-
-
-    orb.classList.add(
-        "processing"
-    );
-
-
-    speechSynthesisActive =
-        true;
-
-
-    /* =====================================================
-       SPEECH FINISHED
-    ===================================================== */
-
-    utterance.onend =
-        () => {
+        audio.onplay = () => {
 
             console.log(
-                "Tamil speech finished"
+                "JARVIS audio started"
             );
-
-
-            speechSynthesisActive =
-                false;
-
-
-            isProcessing =
-                false;
-
-
-            orb.classList.remove(
-                "processing"
-            );
-
-
-            if (isRunning) {
-
-                statusText.textContent =
-                    "Listening...";
-
-                orb.classList.add(
-                    "active"
-                );
-
-                startRecorder();
-
-            }
 
         };
 
 
-    /* =====================================================
-       SPEECH ERROR
-    ===================================================== */
+        /*
+            Audio finished
+        */
 
-    utterance.onerror =
-        event => {
+        audio.onended = () => {
+
+            console.log(
+                "JARVIS audio finished"
+            );
+
+
+            isSpeaking = false;
+
+
+            URL.revokeObjectURL(
+                audioUrl
+            );
+
+
+            /*
+                Automatically listen again
+            */
+
+            setTimeout(() => {
+
+                if (!isProcessing) {
+
+                    startRecording();
+
+                }
+
+            }, 300);
+
+        };
+
+
+        /*
+            Audio error
+        */
+
+        audio.onerror = event => {
 
             console.error(
-                "Tamil speech error:",
+                "Audio playback error:",
                 event
             );
 
 
-            speechSynthesisActive =
-                false;
+            isSpeaking = false;
 
 
-            isProcessing =
-                false;
-
-
-            orb.classList.remove(
-                "processing"
+            URL.revokeObjectURL(
+                audioUrl
             );
 
 
-            if (isRunning) {
+            setStatus(
+                "Audio playback failed"
+            );
 
-                startRecorder();
 
-            }
+            /*
+                Continue listening
+            */
+
+            setTimeout(() => {
+
+                if (!isProcessing) {
+
+                    startRecording();
+
+                }
+
+            }, 1000);
 
         };
 
 
-    /* Speak */
+        /*
+            Play audio
+        */
 
-    speechSynthesis.speak(
-        utterance
-    );
+        audio
+            .play()
+            .catch(error => {
+
+                console.error(
+                    "Audio play failed:",
+                    error
+                );
+
+
+                isSpeaking = false;
+
+
+                URL.revokeObjectURL(
+                    audioUrl
+                );
+
+
+                setTimeout(() => {
+
+                    if (!isProcessing) {
+
+                        startRecording();
+
+                    }
+
+                }, 1000);
+
+            });
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Audio decoding error:",
+            error
+        );
+
+
+        isSpeaking = false;
+
+
+        setStatus(
+            "Audio decoding failed"
+        );
+
+
+        setTimeout(() => {
+
+            if (!isProcessing) {
+
+                startRecording();
+
+            }
+
+        }, 1000);
+
+    }
 
 }
 
 
 /* =========================================================
-   LOAD BROWSER VOICES
+   PAGE LOAD
 ========================================================= */
-
-speechSynthesis.onvoiceschanged =
-    () => {
-
-        const voices =
-            speechSynthesis.getVoices();
-
-
-        console.log(
-            "Available browser voices:",
-            voices
-        );
-
-    };
-
-
-/* Load immediately too */
 
 window.addEventListener(
     "load",
     () => {
 
-        const voices =
-            speechSynthesis.getVoices();
-
+        console.log(
+            "JARVIS Web Assistant loaded"
+        );
 
         console.log(
-            "Initial browser voices:",
-            voices
+            "Webhook:",
+            N8N_WEBHOOK
         );
+
+    }
+);
+
+
+/* =========================================================
+   PAGE VISIBILITY
+========================================================= */
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.hidden &&
+            isListening
+        ) {
+
+            /*
+                Stop microphone when
+                tab becomes hidden
+            */
+
+            stopRecording();
+
+        }
 
     }
 );
