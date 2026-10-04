@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,42 +7,24 @@
     <title>JARVIS AI Assistant</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            min-height: 100vh;
-            background:
-                radial-gradient(circle at center, #102030 0%, #05080c 45%, #020305 100%);
-            color: white;
-            font-family: Arial, sans-serif;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            overflow: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 700px;
-            text-align: center;
-            padding: 30px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { color-scheme: dark; --ink:#edf5f6; --muted:#82999e; --line:rgba(190,225,226,.12); --accent:#70d6c7; }
+        body { min-height:100vh; background:#0b1113; color:var(--ink); font-family:Inter, ui-sans-serif, system-ui, sans-serif; overflow-x:hidden; }
+        body::before { content:""; position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at 16% 8%,rgba(51,126,119,.16),transparent 38%),linear-gradient(135deg,transparent 55%,rgba(255,255,255,.018)); }
+        .container { position:relative; width:min(1180px,100%); min-height:100vh; margin:auto; padding:30px 48px 42px; display:grid; grid-template-columns:minmax(300px,.9fr) minmax(380px,1.1fr); grid-template-rows:auto 1fr; gap:32px 72px; }
+        .topbar { grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; padding-bottom:20px; border-bottom:1px solid var(--line); }
+        .brand { display:flex; gap:12px; align-items:center; font-size:13px; font-weight:650; letter-spacing:.17em; }
+        .brand-mark { width:30px;height:30px;border:1px solid rgba(112,214,199,.55);border-radius:9px;display:grid;place-items:center;color:var(--accent);font-size:12px; }
+        .system-state { display:flex;align-items:center;gap:9px;color:#b4c5c6;font:10px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025); }
+        .system-state::before { content:""; width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(112,214,199,.8); }
+        .control-panel { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0 30px; }
 
         /* =========================
            JARVIS ARC
         ========================= */
 
         .jarvis-core {
-            width: 240px;
-            height: 240px;
-
-            margin: 0 auto 35px;
+            width: 270px; height: 270px; margin: 0 auto 46px;
 
             border-radius: 50%;
 
@@ -52,16 +34,10 @@
 
             position: relative;
 
-            background:
-                radial-gradient(circle,
-                    rgba(0, 220, 255, 0.35) 0%,
-                    rgba(0, 150, 255, 0.15) 35%,
-                    rgba(0, 0, 0, 0.2) 70%);
+            background: radial-gradient(circle,rgba(78,166,157,.17),rgba(17,38,38,.3) 48%,transparent 72%);
 
             box-shadow:
-                0 0 25px rgba(0, 200, 255, 0.4),
-                0 0 60px rgba(0, 150, 255, 0.2),
-                inset 0 0 40px rgba(0, 200, 255, 0.15);
+                0 0 52px rgba(75,184,170,.12), inset 0 0 45px rgba(112,214,199,.06);
 
             transition: 0.3s;
         }
@@ -71,15 +47,14 @@
 
             position: absolute;
 
-            width: 200px;
-            height: 200px;
+            width: 220px; height: 220px;
 
             border-radius: 50%;
 
-            border: 2px solid rgba(0, 220, 255, 0.5);
+            border: 1px solid rgba(112,214,199,.5); border-left-color:transparent; border-bottom-color:rgba(112,214,199,.15);
 
             box-shadow:
-                0 0 15px rgba(0, 220, 255, 0.5);
+                0 0 18px rgba(112,214,199,.25);
 
             animation: rotate 8s linear infinite;
         }
@@ -89,43 +64,39 @@
 
             position: absolute;
 
-            width: 165px;
-            height: 165px;
+            width: 176px; height: 176px;
 
             border-radius: 50%;
 
-            border: 1px dashed rgba(0, 200, 255, 0.35);
+            border: 1px dashed rgba(112,214,199,.22);
 
             animation: rotateReverse 10s linear infinite;
         }
 
         .core-light {
-            width: 80px;
-            height: 80px;
+            width: 72px; height: 72px;
 
             border-radius: 50%;
 
             background:
                 radial-gradient(circle,
                     #ffffff 0%,
-                    #55eaff 20%,
-                    #00bfff 45%,
-                    #0077ff 70%,
+                    #c3fff3 20%,
+                    #70d6c7 45%,
+                    #328f85 70%,
                     transparent 72%);
 
             box-shadow:
-                0 0 20px #00d9ff,
-                0 0 50px #008cff,
-                0 0 90px rgba(0, 150, 255, 0.5);
+                0 0 20px #70d6c7, 0 0 60px rgba(67,180,166,.45);
 
             animation: pulse 2s infinite;
         }
 
         .listening .jarvis-core {
             box-shadow:
-                0 0 35px rgba(0, 255, 255, 0.7),
-                0 0 100px rgba(0, 180, 255, 0.35),
-                inset 0 0 50px rgba(0, 255, 255, 0.2);
+                0 0 35px rgba(112,214,199,.48),
+                0 0 100px rgba(61,171,157,.28),
+                inset 0 0 50px rgba(112,214,199,.15);
         }
 
         .speaking .jarvis-core {
@@ -136,28 +107,22 @@
            TEXT
         ========================= */
 
-        .title {
-            font-size: 42px;
-            letter-spacing: 8px;
-            margin-bottom: 10px;
+        .title { font-size:34px; letter-spacing:.25em; margin-bottom:9px; font-weight:600;
 
             text-shadow:
-                0 0 15px rgba(0, 200, 255, 0.8);
+                0 0 18px rgba(112,214,199,.22);
         }
 
         .subtitle {
-            color: #7edfff;
-            font-size: 14px;
-            letter-spacing: 3px;
-            margin-bottom: 30px;
+            color:var(--muted);font-size:10px;letter-spacing:.22em;margin-bottom:24px;
         }
 
         .status {
-            min-height: 25px;
+            min-height: 34px;display:flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid rgba(112,214,199,.17);border-radius:999px;background:rgba(112,214,199,.055);
 
             font-size: 16px;
 
-            color: #8ceaff;
+            color:var(--accent);font:11px ui-monospace,monospace;letter-spacing:.08em;
 
             margin-bottom: 20px;
 
@@ -177,14 +142,14 @@
 
             border-radius: 15px;
 
-            background: rgba(0, 20, 35, 0.55);
+            background: rgba(255,255,255,.035);
 
-            border: 1px solid rgba(0, 200, 255, 0.2);
+            border: 1px solid var(--line);
 
             box-shadow:
-                0 0 20px rgba(0, 150, 255, 0.08);
+                0 0 20px rgba(59,133,125,.08);
 
-            color: #d9f8ff;
+            color:#cfddde;
 
             line-height: 1.6;
 
@@ -192,41 +157,47 @@
 
             backdrop-filter: blur(10px);
         }
+        .conversation { align-self:center; padding:34px 0; max-width:510px;width:100%; }
+        .eyebrow { color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;margin-bottom:16px; }
+        .conversation h2 {font-size:29px;line-height:1.25;font-weight:500;letter-spacing:-.04em;margin-bottom:26px;max-width:390px;}
+        .response-box { position:relative; margin:0; min-height:210px; padding:26px 28px; border-radius:4px 14px 14px 14px; line-height:1.85; font-size:15px; }
+        .response-box::before {content:"JARVIS / RESPONSE";display:block;margin-bottom:18px;color:var(--muted);font:9px ui-monospace,monospace;letter-spacing:.15em;}
+        .conversation-foot {margin-top:18px;display:flex;align-items:center;gap:10px;color:#60777a;font:10px ui-monospace,monospace;letter-spacing:.08em;}
+        .conversation-foot::before {content:"";height:1px;width:24px;background:var(--accent);opacity:.55;}
 
         /* =========================
            BUTTON
         ========================= */
 
         .mic-button {
-            width: 85px;
-            height: 85px;
+            width: 76px;
+            height: 76px;
 
             border-radius: 50%;
 
-            border: 2px solid #00d9ff;
+            border: 1px solid rgba(112,214,199,.65);
 
             background:
                 radial-gradient(circle,
-                    rgba(0, 200, 255, 0.3),
-                    rgba(0, 30, 50, 0.9));
+                    rgba(112,214,199,.24),rgba(17,45,44,.9));
 
             color: white;
 
-            font-size: 32px;
+            font-size: 10px; letter-spacing:.12em; font-weight:650;
 
             cursor: pointer;
 
             box-shadow:
-                0 0 20px rgba(0, 220, 255, 0.4);
+                0 0 20px rgba(112,214,199,.2);
 
-            transition: 0.2s;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
         }
 
         .mic-button:hover {
-            transform: scale(1.08);
+            transform: translateY(-2px);
 
             box-shadow:
-                0 0 30px rgba(0, 220, 255, 0.7);
+                0 0 30px rgba(112,214,199,.42);
         }
 
         .mic-button.active {
@@ -235,19 +206,22 @@
                     rgba(255, 60, 60, 0.4),
                     rgba(50, 0, 0, 0.9));
 
-            border-color: #ff5555;
+            border-color: #db827c;
 
             box-shadow:
-                0 0 30px rgba(255, 60, 60, 0.7);
+                0 0 25px rgba(219,130,124,.3);
         }
+        .mic-button:focus-visible {outline:2px solid var(--accent);outline-offset:4px;}
+        .mic-button:active {transform:scale(.97);}
 
         .hint {
             margin-top: 15px;
 
-            color: #557080;
+            color:#60777a;
 
-            font-size: 12px;
+            font-size: 9px;letter-spacing:.13em;
         }
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after {animation-duration:.01ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important;} }
 
         /* =========================
            ANIMATIONS
@@ -299,35 +273,28 @@
            MOBILE
         ========================= */
 
-        @media (max-width: 600px) {
-
-            .container {
-                padding: 20px;
-            }
+        @media (max-width: 760px) {
+            .container {min-height:100dvh;padding:20px 22px 36px;grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:16px;}
+            .topbar {grid-column:auto;}
+            .control-panel {align-items:center;padding:8px 0 0;}
+            .conversation {padding:4px 0 20px;}
 
             .jarvis-core {
-                width: 190px;
-                height: 190px;
+                width: 190px; height:190px;
             }
 
             .jarvis-core::before {
-                width: 160px;
-                height: 160px;
+                width: 158px; height:158px;
             }
 
             .jarvis-core::after {
-                width: 130px;
-                height: 130px;
+                width: 128px; height:128px;
             }
 
-            .title {
-                font-size: 30px;
-                letter-spacing: 5px;
-            }
-
-            .response-box {
-                font-size: 14px;
-            }
+            .title {font-size:28px;letter-spacing:.24em;}
+            .conversation h2 {font-size:24px;margin-bottom:18px;}
+            .conversation {max-width:none;}
+            .response-box {font-size:14px;min-height:140px;padding:20px;}
         }
     </style>
 </head>
@@ -335,54 +302,25 @@
 <body>
 
 <div class="container" id="app">
-
-    <!-- JARVIS CORE -->
-
-    <div class="jarvis-core">
-        <div class="core-light"></div>
-    </div>
-
-    <!-- TITLE -->
-
-    <div class="title">
-        JARVIS
-    </div>
-
-    <div class="subtitle">
-        AI VOICE ASSISTANT
-    </div>
-
-    <!-- STATUS -->
-
-    <div class="status" id="status">
-        Click the microphone to start
-    </div>
-
-    <!-- RESPONSE -->
-
-    <div class="response-box" id="responseBox">
-        Hello sir. I'm ready.
-    </div>
-
-    <!-- MICROPHONE -->
-
-    <button
-        id="micButton"
-        class="mic-button"
-        type="button"
-        onclick="toggleAssistant()">
-
-        🎤
-
-    </button>
-
-    <div class="hint">
-        Speak naturally • Silence detection enabled
-    </div>
-
+    <header class="topbar">
+        <div class="brand"><span class="brand-mark">J</span> JARVIS <span style="color:#60777a;font-weight:400">/ PERSONAL AI</span></div>
+        <div class="system-state">System ready</div>
+    </header>
+    <section class="control-panel" aria-label="Voice assistant controls">
+        <div class="jarvis-core"><div class="core-light"></div></div>
+        <div class="title">JARVIS</div>
+        <div class="subtitle">AI VOICE ASSISTANT</div>
+        <div class="status" id="status" aria-live="polite">Click the microphone to start</div>
+        <button id="micButton" class="mic-button" type="button" aria-label="Start listening" onclick="toggleAssistant()">START</button>
+        <div class="hint">SPEAK NATURALLY · SILENCE DETECTION ENABLED</div>
+    </section>
+    <section class="conversation" aria-label="Assistant response">
+        <div class="eyebrow">VOICE INTERFACE <span style="color:#70d6c7">/ 01</span></div>
+        <h2>Your assistant, ready when you are.</h2>
+        <div class="response-box" id="responseBox">Hello. I'm ready.</div>
+        <div class="conversation-foot">YOUR CONVERSATION WILL APPEAR HERE</div>
+    </section>
 </div>
-
-
 <script>
 
 /* =========================================================
@@ -469,7 +407,8 @@ function setListeningUI() {
 
     micButton.classList.add("active");
 
-    micButton.textContent = "🛑";
+    micButton.textContent = "STOP";
+    micButton.setAttribute("aria-label", "Stop listening");
 
     setStatus("Listening...");
 
@@ -484,7 +423,8 @@ function setSpeakingUI() {
 
     micButton.classList.remove("active");
 
-    micButton.textContent = "🔊";
+    micButton.textContent = "AUDIO";
+    micButton.setAttribute("aria-label", "Assistant is speaking");
 
     setStatus("JARVIS is speaking...");
 
@@ -499,7 +439,8 @@ function setIdleUI() {
 
     micButton.classList.remove("active");
 
-    micButton.textContent = "🎤";
+    micButton.textContent = "START";
+    micButton.setAttribute("aria-label", "Start listening");
 
     setStatus("Click the microphone to start");
 
@@ -1196,7 +1137,7 @@ function playJARVISAudio(
     try {
 
         /*
-            Convert Base64 → binary
+            Convert Base64 â†’ binary
         */
 
         const binaryString =
